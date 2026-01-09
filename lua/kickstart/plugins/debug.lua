@@ -120,6 +120,27 @@ return {
       },
     }
 
+    -- C# (.NET) Debugger Configuration
+    local mason_path = vim.fn.stdpath 'data' .. '/mason/packages/netcoredbg/netcoredbg'
+    local netcoredbg_adapter = {
+      type = 'executable',
+      command = mason_path,
+      args = { '--interpreter=vscode' },
+    }
+
+    dap.adapters.netcoredbg = netcoredbg_adapter
+    dap.adapters.coreclr = netcoredbg_adapter
+
+    dap.configurations.cs = {
+      {
+        type = 'coreclr',
+        name = 'launch - netcoredbg',
+        request = 'launch',
+        program = function()
+          return vim.fn.input('Path to dll: ', vim.fn.getcwd() .. '/bin/Debug/net9.0/', 'file')
+        end,
+      },
+    }
     -- Change breakpoint icons
     -- vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
     -- vim.api.nvim_set_hl(0, 'DapStop', { fg = '#ffcc00' })
