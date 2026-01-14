@@ -5,7 +5,7 @@ return {
     enable = true,
     commands = true,
     autoresize = {
-      enable = true,
+      enable = false,
     },
   },
   config = function(_, opts)
