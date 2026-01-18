@@ -948,6 +948,18 @@ require('lazy').setup({
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
       local statusline = require 'mini.statusline'
+      local orig_section_mode = statusline.section_mode
+
+      statusline.section_mode = function(args)
+        local mode, mode_hl = orig_section_mode(args)
+        local recording = vim.fn.reg_recording()
+
+        if recording ~= '' then
+          return mode .. '  REC @' .. recording, mode_hl
+        end
+
+        return mode, mode_hl
+      end
       -- set use_icons to true if you have a Nerd Font
       statusline.setup { use_icons = vim.g.have_nerd_font }
 
