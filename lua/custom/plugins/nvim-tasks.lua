@@ -19,7 +19,7 @@ return {
     vim.keymap.set('n', '<leader>cK', ':Task start cmake clean<CR>', { silent = true, desc = 'CMake: clean build' })
     vim.keymap.set('n', '<leader>ct', ':Task set_module_param cmake target<CR>', { silent = true, desc = 'CMake: select target' })
     vim.keymap.set('n', '<leader>cr', ':Task start cmake run<CR>', { silent = true, desc = 'CMake: run executable' })
-    vim.keymap.set('n', '<F7>', ':Task start cmake debug<CR>', { silent = true, desc = 'CMake: start debugger' })
+    vim.keymap.set('n', '<leader>cd', ':Task start cmake debug<CR>', { silent = true, desc = 'CMake: start debugger' })
     vim.keymap.set('n', '<leader>cb', ':Task start cmake build<CR>', { silent = true, desc = 'CMake: build' })
     vim.keymap.set('n', '<leader>cB', ':Task start cmake build_all<CR>', { silent = true, desc = 'CMake: build all targets' })
 
