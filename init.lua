@@ -902,8 +902,8 @@ require('lazy').setup({
       require('catppuccin').setup {
         flavour = 'mocha',
         transparent_background = false,
+        vim.cmd.colorscheme 'kanagawa-wave',
       }
-      vim.cmd.colorscheme 'catppuccin-mocha'
     end,
   },
   { -- You can easily change to a different colorscheme.
