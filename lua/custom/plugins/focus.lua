@@ -5,7 +5,7 @@ return {
     enable = true,
     commands = true,
     autoresize = {
-      enable = true,
+      enable = false,
     },
   },
   config = function(_, opts)
@@ -13,7 +13,10 @@ return {
 
     -- Keymap: Fenster maximieren
     vim.keymap.set('n', '<leader>z', '<cmd>FocusMaxOrEqual<CR>', {
-      desc = 'Maximize current window',
+      desc = 'Maximize or equal current window',
+    })
+    vim.keymap.set('n', '<leader>Z', '<cmd>:FocusMaximise<CR>', {
+      desc = 'Maximize current Window',
     })
 
     ------------------------------------------------------------------

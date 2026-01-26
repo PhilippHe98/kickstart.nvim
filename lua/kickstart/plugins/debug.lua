@@ -32,24 +32,24 @@ return {
       function()
         require('dap').continue()
       end,
-      desc = 'Debug: Start/Continue',
+      desc = 'Debug: [S]tart/Continue',
     },
     {
-      '<leader>di',
+      '<F1>',
       function()
         require('dap').step_into()
       end,
       desc = 'Debug: Step Into',
     },
     {
-      '<leader>do',
+      '<F2>',
       function()
         require('dap').step_over()
       end,
       desc = 'Debug: Step Over',
     },
     {
-      '<leader>du',
+      '<F3>',
       function()
         require('dap').step_out()
       end,
@@ -60,14 +60,21 @@ return {
       function()
         require('dap').toggle_breakpoint()
       end,
-      desc = 'Debug: Toggle Breakpoint',
+      desc = 'Debug: Toggle [B]reakpoint',
     },
     {
       '<leader>dB',
       function()
         require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ')
       end,
-      desc = 'Debug: Set Breakpoint',
+      desc = 'Debug: Set [B]reakpoint',
+    },
+    {
+      '<leader>dc',
+      function()
+        require('dap').run_to_cursor()
+      end,
+      desc = 'Debug: Debug: Run to [C]ursor',
     },
     -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
     {
@@ -75,7 +82,7 @@ return {
       function()
         require('dapui').toggle()
       end,
-      desc = 'Debug: See last session result.',
+      desc = 'Debug: See last session [R]esult.',
     },
   },
   config = function()
@@ -122,6 +129,23 @@ return {
         },
       },
     }
+    dap.configurations.cpp = {
+      {
+        name = 'Launch file',
+        type = 'codelldb',
+        request = 'launch',
+        program = function()
+          return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+        end,
+        cwd = '${workspaceFolder}',
+        stopOnEntry = false,
+
+        -- ADD THESE THREE LINES:
+        expressions = 'native',
+        sourceLanguages = { 'cpp' },
+        initCommands = { 'settings set target.prefer-dynamic-value run-target' },
+      },
+    }
 
     -- C# (.NET) Debugger Configuration
     local mason_path = vim.fn.stdpath 'data' .. '/mason/packages/netcoredbg/netcoredbg'
@@ -145,19 +169,6 @@ return {
       },
     }
 
-    dap.configurations.cpp = {
-      {
-        name = 'Launch file',
-        type = 'codelldb',
-        request = 'launch',
-        program = function()
-          return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-        end,
-        cwd = '${workspaceFolder}',
-        stopOnEntry = false,
-      },
-    }
-
     dap.configurations.c = dap.configurations.cpp
     -- Change breakpoint icons
     vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
@@ -171,9 +182,23 @@ return {
       vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
     end
 
-    dap.listeners.after.event_initialized['dapui_config'] = dapui.open
-    dap.listeners.before.event_terminated['dapui_config'] = dapui.close
-    dap.listeners.before.event_exited['dapui_config'] = dapui.close
+    dap.listeners.after.event_initialized['dapui_config'] = function()
+      vim.schedule(function()
+        dapui.open()
+      end)
+    end
+
+    dap.listeners.before.event_terminated['dapui_config'] = function()
+      vim.schedule(function()
+        dapui.close()
+      end)
+    end
+
+    dap.listeners.before.event_exited['dapui_config'] = function()
+      vim.schedule(function()
+        dapui.close()
+      end)
+    end
 
     -- Install golang specific config
     require('dap-go').setup {
