@@ -5,7 +5,7 @@ return {
     enable = true,
     commands = true,
     autoresize = {
-      enable = false,
+      enable = true,
     },
   },
   config = function(_, opts)
@@ -15,7 +15,7 @@ return {
     vim.keymap.set('n', '<leader>z', '<cmd>FocusMaxOrEqual<CR>', {
       desc = 'Maximize or equal current window',
     })
-    vim.keymap.set('n', '<leader>Z', '<cmd>:FocusMaximise<CR>', {
+    vim.keymap.set('n', '<leader>Z', '<cmd>FocusMaximise<CR>', {
       desc = 'Maximize current Window',
     })
 
@@ -23,7 +23,7 @@ return {
     -- Disable focus for certain filetypes / buftypes (e.g. neo-tree)
     ------------------------------------------------------------------
 
-    local ignore_filetypes = { 'neo-tree' }
+    local ignore_filetypes = { 'neo-tree', 'DiffviewFiles', 'DiffviewFileHistory' }
     local ignore_buftypes = { 'nofile', 'prompt', 'popup' }
 
     local augroup = vim.api.nvim_create_augroup('FocusDisable', { clear = true })

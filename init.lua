@@ -48,6 +48,22 @@ vim.schedule(function()
   vim.o.clipboard = 'unnamedplus'
 end)
 
+-- Automatische Erkennung von PowerShell 7 (pwsh) oder PowerShell 5 (powershell)
+local isWin = vim.loop.os_uname().sysname:find 'Windows' and true or false
+if isWin then
+  if vim.fn.executable 'pwsh' == 1 then
+    vim.opt.shell = 'pwsh'
+  else
+    vim.opt.shell = 'powershell'
+  end
+  vim.opt.shellcmdflag =
+    '-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command [Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;'
+  vim.opt.shellredir = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
+  vim.opt.shellpipe = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
+  vim.opt.shellquote = ''
+  vim.opt.shellxquote = ''
+end
+
 vim.o.tabstop = 4
 vim.o.shiftwidth = 4
 vim.o.softtabstop = 4
@@ -207,9 +223,7 @@ require('lazy').setup({
     'seblyng/roslyn.nvim',
     ---@module 'roslyn.config'
     ---@type RoslynNvimConfig
-    opts = {
-      -- your configuration comes here; leave empty for default settings
-    },
+    opts = {},
   },
 
   -- Alternatively, use `config = function() ... end` for full control over the configuration.
@@ -303,6 +317,7 @@ require('lazy').setup({
         { '<leader>s', group = '[S]earch' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        { '<leader>p', group = '[P]owerShell' },
       },
     },
   },
@@ -543,8 +558,8 @@ require('lazy').setup({
           --  To jump back, press <C-t>.
           map('grd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
 
-          -- WARN: This is not Goto Definition, this is Goto Declaration.
-          --  For example, in C this would take you to the header.
+          map('grh', vim.lsp.buf.hover, '[H]over Documentation')
+
           map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           -- Fuzzy find all the symbols in your current document.
