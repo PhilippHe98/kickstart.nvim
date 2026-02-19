@@ -28,7 +28,6 @@ vim.o.showmode = false
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
-
 if vim.fn.has 'win32' == 1 then
   vim.g.clipboard = {
     name = 'win32yank',
@@ -63,6 +62,24 @@ if isWin then
   vim.opt.shellquote = ''
   vim.opt.shellxquote = ''
 end
+
+vim.api.nvim_create_autocmd('TermOpen', {
+  group = vim.api.nvim_create_augroup('custom-term-open', { clear = true }),
+  callback = function()
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+  end,
+})
+vim.api.nvim_create_autocmd('TermOpen', {
+  command = 'tnoremap <buffer> jk <C-\\><C-N>',
+})
+
+vim.keymap.set('n', '<space>st', function()
+  vim.cmd.vnew()
+  vim.cmd.term()
+  vim.cmd.wincmd 'J'
+  vim.api.nvim_win_set_height(0, 7)
+end)
 
 vim.o.tabstop = 4
 vim.o.shiftwidth = 4
