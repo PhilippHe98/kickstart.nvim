@@ -78,7 +78,7 @@ vim.keymap.set('n', '<space>st', function()
   vim.cmd.vnew()
   vim.cmd.term()
   vim.cmd.wincmd 'J'
-  vim.api.nvim_win_set_height(0, 7)
+  vim.api.nvim_win_set_height(0, 10)
 end)
 
 vim.o.tabstop = 4
@@ -236,13 +236,12 @@ require('lazy').setup({
   --
   -- Use `opts = {}` to automatically pass options to a plugin's `setup()` function, forcing the plugin to be loaded.
   --
-  { -- Roslyn LSP for C#
-    'seblyng/roslyn.nvim',
-    ---@module 'roslyn.config'
-    ---@type RoslynNvimConfig
-    opts = {},
-  },
-
+  -- { -- Roslyn LSP for C#
+  --   'seblyng/roslyn.nvim',
+  --   ---@module 'roslyn.config'
+  --   ---@type RoslynNvimConfig
+  --   opts = {},
+  -- },
   -- Alternatively, use `config = function() ... end` for full control over the configuration.
   -- If you prefer to call `setup` explicitly, use:
   --    {
@@ -545,6 +544,13 @@ require('lazy').setup({
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
+          -- prevents weird issues with git staging paths and windows
+          local bufname = vim.api.nvim_buf_get_name(event.buf)
+          if bufname:match 'diffview://' or bufname:match '[/\\]%.git[/\\]' then
+            vim.schedule(function()
+              vim.lsp.buf_detach_client(event.buf, event.data.client_id)
+            end)
+          end
           -- NOTE: Remember that Lua is a real programming language, and as such it is possible
           -- to define small helper and utility functions so you don't have to repeat yourself.
           --
@@ -691,7 +697,7 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        clangd = {},
+        -- clangd = {},
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -703,6 +709,10 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
+        powershell_es = {
+          single_file_support = false,
+          filetypes = { 'ps1', 'psm1', 'psd1' },
+        },
 
         lua_ls = {
           -- cmd = { ... },
@@ -776,7 +786,7 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = false }
+        local disable_filetypes = { c = true, cpp = false, ps1 = true, psm1 = true, psd1 = true }
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
         else
@@ -934,7 +944,7 @@ require('lazy').setup({
       require('catppuccin').setup {
         flavour = 'mocha',
         transparent_background = false,
-        vim.cmd.colorscheme 'kanagawa-wave',
+        vim.cmd.colorscheme 'catppuccin',
       }
     end,
   },
