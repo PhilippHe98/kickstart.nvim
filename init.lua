@@ -225,6 +225,10 @@ rtp:prepend(lazypath)
 --  To update plugins you can run
 --    :Lazy update
 --
+-- Aktives Colorscheme – hier zentral wechseln (z.B. 'tokyonight-night', 'moonfly',
+-- 'kanagawa-wave', 'catppuccin'). Wird nach dem Laden der Plugins aktiviert.
+vim.g.my_colorscheme = 'kanagawa'
+
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
@@ -426,12 +430,19 @@ require('lazy').setup({
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
           },
+          git_file_history = {
+            mappings = {
+              i = { ['<C-g>'] = require('telescope').extensions.git_file_history.actions.open_in_browser },
+              n = { ['<C-g>'] = require('telescope').extensions.git_file_history.actions.open_in_browser },
+            },
+          },
         },
       }
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
       pcall(require('telescope').load_extension 'live_grep_args')
+      pcall(require('telescope').load_extension, 'git_file_history')
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
@@ -944,7 +955,6 @@ require('lazy').setup({
       require('catppuccin').setup {
         flavour = 'mocha',
         transparent_background = false,
-        vim.cmd.colorscheme 'catppuccin',
       }
     end,
   },
@@ -969,6 +979,7 @@ require('lazy').setup({
       -- vim.cmd.colorscheme 'tokyonight-night'
     end,
   },
+  { 'bluz71/vim-moonfly-colors', name = 'moonfly', lazy = false, priority = 1000 },
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
@@ -1118,6 +1129,10 @@ require('lazy').setup({
     },
   },
 })
+
+-- Aktiviert das oben in `vim.g.my_colorscheme` gewählte Theme – zentral, nachdem
+-- alle Theme-Plugins geladen und mit `setup{}` konfiguriert wurden.
+vim.cmd.colorscheme(vim.g.my_colorscheme)
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
