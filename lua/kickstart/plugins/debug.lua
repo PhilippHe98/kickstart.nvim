@@ -76,88 +76,52 @@ return {
       end,
       desc = 'Debug: Debug: Run to [C]ursor',
     },
-    -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-    -- {
-    --   '<leader>dr',
-    --   function()
-    --     require('dapui').toggle()
-    --   end,
-    --   desc = 'Debug: See last session [R]esult.',
-    -- },
   },
   config = function()
     local dap = require 'dap'
-    -- local dapui = require 'dapui'
+    local is_windows = vim.fn.has 'win32' == 1
+
+    -- =====================================================================
+    -- REPL-FENSTER DEAKTIVIEREN
+    -- Verhindert, dass neovim-tasks oder dap das REPL-Fenster erzwingen
+    -- =====================================================================
+    dap.repl.open = function()
+      -- Absichtlich leer, um das automatische Öffnen komplett zu blockieren
+    end
+    -- =====================================================================
 
     require('nvim-dap-virtual-text').setup()
+
+    -- Mason-nvim-dap sorgt NUR für die automatische Installation
     require('mason-nvim-dap').setup {
-      -- Makes a best effort to setup the various debuggers with
-      -- reasonable debug configurations
       automatic_installation = true,
-
-      -- You can provide additional configuration to the handlers,
-      -- see mason-nvim-dap README for more information
-      handlers = {},
-
-      -- You'll need to check that you have the required things installed
-      -- online, please don't ask me how to install them :)
       ensure_installed = {
-        -- Update this to ensure that you have the debuggers for the langs you want
         'delve',
+        'netcoredbg',
         'codelldb',
       },
     }
 
-    -- Dap UI setup
-    -- For more information, see |:help nvim-dap-ui|
-    -- dapui.setup {
-    --   -- Set icons to characters that are more likely to work in every terminal.
-    --   --    Feel free to remove or use ones that you like more! :)
-    --   --    Don't feel like these are good choices.
-    --   icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
-    --   controls = {
-    --     icons = {
-    --       pause = '',
-    --       play = '',
-    --       step_into = '',
-    --       step_over = '',
-    --       step_out = '󰆸',
-    --       step_back = '',
-    --       run_last = '▶▶',
-    --       terminate = '',
-    --       disconnect = '',
-    --     },
-    --   },
-    -- }
-    dap.configurations.cpp = {
-      {
-        name = 'Launch file',
-        type = 'codelldb',
-        request = 'launch',
-        program = function()
-          return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-        end,
-        cwd = '${workspaceFolder}',
-        stopOnEntry = false,
+    -- C# (.NET) Debugger Adapter direkt und fehlerfrei definieren
+    -- Windows nutzt eine tiefere Verschachtelung im Mason-Ordner
+    local netcoredbg_path = ''
+    if is_windows then
+      netcoredbg_path = vim.fs.normalize(vim.fn.stdpath 'data' .. '/mason/packages/netcoredbg/netcoredbg/netcoredbg.exe')
+    else
+      netcoredbg_path = vim.fs.normalize(vim.fn.stdpath 'data' .. '/mason/packages/netcoredbg/netcoredbg')
+    end
 
-        -- ADD THESE THREE LINES:
-        expressions = 'native',
-        sourceLanguages = { 'cpp' },
-        initCommands = { 'settings set target.prefer-dynamic-value run-target' },
-      },
-    }
-
-    -- C# (.NET) Debugger Configuration
-    local mason_path = vim.fn.stdpath 'data' .. '/mason/packages/netcoredbg/netcoredbg'
     local netcoredbg_adapter = {
       type = 'executable',
-      command = mason_path,
+      command = netcoredbg_path,
       args = { '--interpreter=vscode' },
     }
 
+    -- Beide Bezeichner registrieren, damit checkhealth UND deine Konfigurationen glücklich sind
     dap.adapters.netcoredbg = netcoredbg_adapter
     dap.adapters.coreclr = netcoredbg_adapter
 
+    -- C# (.NET) Configurations
     dap.configurations.cs = {
       {
         type = 'coreclr',
@@ -169,7 +133,44 @@ return {
       },
     }
 
+    -- =====================================================================
+    -- C++ (codelldb) Adapter-Registrierung
+    -- =====================================================================
+    local codelldb_path = vim.fs.normalize(vim.fn.stdpath 'data' .. '/mason/bin/codelldb.CMD')
+    if is_windows then
+      codelldb_path = codelldb_path:gsub('/', '\\')
+    end
+
+    dap.configurations.cpp = {
+      {
+        name = 'cpp',
+        type = 'codelldb',
+        request = 'launch',
+        program = function()
+          return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+        end,
+        cwd = '${workspaceFolder}',
+        stopOnEntry = true,
+        expressions = 'native',
+        sourceLanguages = { 'cpp' },
+        initCommands = { 'settings set target.prefer-dynamic-value run-target' },
+      },
+    }
+
+    dap.adapters.codelldb = {
+      type = 'server',
+      port = '${port}',
+      executable = {
+        command = codelldb_path,
+        args = { '--port', '${port}' },
+        -- Verhindert das Aufpoppen extra CMD-Fenster unter Windows
+        detached = false,
+      },
+    }
+    -- =====================================================================
+
     dap.configurations.c = dap.configurations.cpp
+
     -- Change breakpoint icons
     vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
     vim.api.nvim_set_hl(0, 'DapStop', { fg = '#ffcc00' })
@@ -182,29 +183,9 @@ return {
       vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
     end
 
-    -- dap.listeners.after.event_initialized['dapui_config'] = function()
-    --   vim.schedule(function()
-    --     dapui.open()
-    --   end)
-    -- end
-    --
-    -- dap.listeners.before.event_terminated['dapui_config'] = function()
-    --   vim.schedule(function()
-    --     dapui.close()
-    --   end)
-    -- end
-    --
-    -- dap.listeners.before.event_exited['dapui_config'] = function()
-    --   vim.schedule(function()
-    --     dapui.close()
-    --   end)
-    -- end
-
     -- Install golang specific config
     require('dap-go').setup {
       delve = {
-        -- On Windows delve must be run attached or it crashes.
-        -- See https://github.com/leoluz/nvim-dap-go/blob/main/README.md#configuring
         detached = vim.fn.has 'win32' == 0,
       },
     }
